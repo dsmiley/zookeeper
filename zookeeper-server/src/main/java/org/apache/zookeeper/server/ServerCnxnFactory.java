@@ -258,13 +258,15 @@ public abstract class ServerCnxnFactory {
         } catch (Exception e) {
             String msg = "Couldn't instantiate " + serverCnxnFactoryName;
             if (secure) {
-                msg += ". SSL/TLS support requires Netty; please add the netty-handler dependency to your project.";
+                msg += ". SSL/TLS support requires Netty; please add netty-handler"
+                    + " (and optionally netty-tcnative-boringssl-static) to your project's dependencies.";
             }
             throw new IOException(msg, e);
         } catch (NoClassDefFoundError e) {
             String msg = "Couldn't instantiate " + serverCnxnFactoryName;
             if (secure) {
-                msg += ". SSL/TLS support requires Netty; please add the netty-handler dependency to your project.";
+                msg += ". SSL/TLS support requires Netty; please add netty-handler"
+                    + " (and optionally netty-tcnative-boringssl-static) to your project's dependencies.";
             }
             throw new IOException(msg, e);
         }

@@ -23,6 +23,8 @@ public class HexDumpOutputFormatter implements OutputFormatter {
     public static final HexDumpOutputFormatter INSTANCE = new HexDumpOutputFormatter();
 
     private static final int BYTES_PER_ROW = 16;
+    private static final int ASCII_PRINTABLE_MIN = 0x20; // space
+    private static final int ASCII_PRINTABLE_MAX = 0x7f; // DEL (exclusive)
     private static final String HEADER_LINE =
         "         +-------------------------------------------------+\n"
         + "         |  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f |\n"
@@ -45,7 +47,7 @@ public class HexDumpOutputFormatter implements OutputFormatter {
                     int b = data[offset + i] & 0xFF;
                     sb.append(String.format(" %02x", b));
                     char c = (char) b;
-                    charPart.append(c >= 0x20 && c < 0x7f ? c : '.');
+                    charPart.append(c >= ASCII_PRINTABLE_MIN && c < ASCII_PRINTABLE_MAX ? c : '.');
                 } else {
                     sb.append("   ");
                     charPart.append(' ');
