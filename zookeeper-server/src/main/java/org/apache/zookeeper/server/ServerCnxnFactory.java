@@ -228,6 +228,48 @@ public abstract class ServerCnxnFactory {
         }
     }
 
+    /**
+     * Creates a ServerCnxnFactory, defaulting to NettyServerCnxnFactory when
+     * {@code secure} is {@code true} and no explicit factory is configured via
+     * the {@value #ZOOKEEPER_SERVER_CNXN_FACTORY} system property. SSL/TLS
+     * requires Netty; if Netty is not present on the classpath a helpful
+     * {@link IOException} is thrown.
+     *
+     * @param secure {@code true} when the factory will be used for secure (SSL/TLS) connections
+     * @return a new ServerCnxnFactory instance
+     * @throws IOException if the factory cannot be instantiated
+     */
+    public static ServerCnxnFactory createFactory(boolean secure) throws IOException {
+        String serverCnxnFactoryName = System.getProperty(ZOOKEEPER_SERVER_CNXN_FACTORY);
+        if (serverCnxnFactoryName == null) {
+            if (secure) {
+                serverCnxnFactoryName = "org.apache.zookeeper.server.NettyServerCnxnFactory";
+                LOG.info("Defaulting to {} for secure connections", serverCnxnFactoryName);
+            } else {
+                serverCnxnFactoryName = NIOServerCnxnFactory.class.getName();
+            }
+        }
+        try {
+            ServerCnxnFactory serverCnxnFactory = (ServerCnxnFactory) Class.forName(serverCnxnFactoryName)
+                                                                           .getDeclaredConstructor()
+                                                                           .newInstance();
+            LOG.info("Using {} as server connection factory", serverCnxnFactoryName);
+            return serverCnxnFactory;
+        } catch (Exception e) {
+            String msg = "Couldn't instantiate " + serverCnxnFactoryName;
+            if (secure) {
+                msg += ". SSL/TLS support requires Netty; please add the netty-handler dependency to your project.";
+            }
+            throw new IOException(msg, e);
+        } catch (NoClassDefFoundError e) {
+            String msg = "Couldn't instantiate " + serverCnxnFactoryName;
+            if (secure) {
+                msg += ". SSL/TLS support requires Netty; please add the netty-handler dependency to your project.";
+            }
+            throw new IOException(msg, e);
+        }
+    }
+
     public static ServerCnxnFactory createFactory(int clientPort, int maxClientCnxns) throws IOException {
         return createFactory(new InetSocketAddress(clientPort), maxClientCnxns, -1);
     }

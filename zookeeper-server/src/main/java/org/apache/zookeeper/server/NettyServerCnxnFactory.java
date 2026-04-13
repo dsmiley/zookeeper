@@ -66,6 +66,7 @@ import org.apache.zookeeper.common.ConfigException;
 import org.apache.zookeeper.common.NettyUtils;
 import org.apache.zookeeper.common.X509Exception;
 import org.apache.zookeeper.common.X509Exception.SSLContextException;
+import org.apache.zookeeper.common.X509Util;
 import org.apache.zookeeper.common.ZKConfig;
 import org.apache.zookeeper.server.NettyServerCnxn.HandshakeState;
 import org.apache.zookeeper.server.auth.ProviderRegistry;
@@ -121,7 +122,7 @@ public class NettyServerCnxnFactory extends ServerCnxnFactory {
 
     private static final AtomicReference<ByteBufAllocator> TEST_ALLOCATOR = new AtomicReference<>(null);
 
-    public static final String CLIENT_CERT_RELOAD_KEY = "zookeeper.client.certReload";
+    public static final String CLIENT_CERT_RELOAD_KEY = X509Util.CLIENT_CERT_RELOAD_KEY;
 
     /**
      * A handler that detects whether the client would like to use

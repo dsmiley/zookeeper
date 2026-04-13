@@ -117,7 +117,7 @@ public class ClientX509Util extends X509Util {
         if (enabledProtocols != null) {
             sslContextBuilder.protocols(enabledProtocols);
         }
-        sslContextBuilder.clientAuth(getClientAuth(config).toNettyClientAuth());
+        sslContextBuilder.clientAuth(toNettyClientAuth(getClientAuth(config)));
         Iterable<String> enabledCiphers = getCipherSuites(config);
         if (enabledCiphers != null) {
             sslContextBuilder.ciphers(enabledCiphers);
@@ -168,6 +168,15 @@ public class ClientX509Util extends X509Util {
 
     private X509Util.ClientAuth getClientAuth(final ZKConfig config) {
         return X509Util.ClientAuth.fromPropertyValue(config.getProperty(getSslClientAuthProperty()));
+    }
+
+    private static io.netty.handler.ssl.ClientAuth toNettyClientAuth(X509Util.ClientAuth clientAuth) {
+        switch (clientAuth) {
+            case NONE: return io.netty.handler.ssl.ClientAuth.NONE;
+            case WANT: return io.netty.handler.ssl.ClientAuth.OPTIONAL;
+            case NEED: return io.netty.handler.ssl.ClientAuth.REQUIRE;
+            default: throw new IllegalArgumentException("Unknown ClientAuth: " + clientAuth);
+        }
     }
 
     private Iterable<String> getCipherSuites(final ZKConfig config) {
