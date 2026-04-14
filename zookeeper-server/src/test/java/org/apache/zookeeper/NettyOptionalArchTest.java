@@ -18,46 +18,53 @@
 
 package org.apache.zookeeper;
 
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
+
+import java.util.Collections;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 /**
  * Architectural test to enforce that Netty is an optional dependency.
  *
- * <p>Only classes that provide Netty-based transport or SSL/TLS functionality
- * are allowed to import {@code io.netty} packages. All other ZooKeeper classes
- * must remain Netty-free so that Netty can be an optional dependency for users
- * who do not need SSL/TLS.
+ * <p>Only classes whose name contains "Netty" (e.g. {@code NettyServerCnxnFactory},
+ * {@code ClientCnxnSocketNetty}) and a small set of explicitly allowed SSL/TLS utility
+ * classes ({@code ClientX509Util}, {@code UnifiedServerSocket}) may depend on
+ * {@code io.netty} packages. All other ZooKeeper classes must remain Netty-free so
+ * that Netty can be an optional dependency for users who do not need SSL/TLS.
  */
 public class NettyOptionalArchTest {
 
-    private static final String NETTY_PACKAGE = "io.netty..";
-
-    /**
-     * Regex matching classes that are legitimately Netty-dependent:
-     * Netty-based transport classes and SSL/TLS utility classes that build on Netty's SSL API.
-     * Test classes are also excluded from this check.
-     */
-    private static final String NETTY_DEPENDENT_CLASS_REGEX =
-        ".*\\.(NettyServerCnxnFactory|NettyServerCnxn|ClientCnxnSocketNetty|NettyUtils"
-        + "|UnifiedServerSocket|ClientX509Util).*"
-        + "|.*Test.*";  // exclude test classes which may import Netty for integration tests
-
     @Test
     public void nonNettyClassesShouldNotDependOnNetty() {
-        JavaClasses classes = new ClassFileImporter()
-            .importPackages("org.apache.zookeeper");
+        JavaClasses importedClasses = new ClassFileImporter(
+                Collections.singletonList(new ImportOption.DoNotIncludeTests()))
+                .importPackages("org.apache.zookeeper")
+                .that(new DescribedPredicate<JavaClass>("ZK Non-Netty classes") {
+                    @Override
+                    public boolean test(JavaClass javaClass) {
+                        // Exclude classes with "Netty" in their name (e.g. NettyServerCnxnFactory,
+                        // ClientCnxnSocketNetty, NettyServerCnxn, NettyUtils).
+                        // Also exclude ClientX509Util and UnifiedServerSocket (including their inner
+                        // and anonymous classes) which legitimately use the Netty SSL API to
+                        // build/wrap SSL contexts and handlers.
+                        String name = javaClass.getName();
+                        return !name.contains("Netty")
+                            && !name.contains("ClientX509Util")
+                            && !name.contains("UnifiedServerSocket");
+                    }
+                });
 
-        ArchRule rule = noClasses()
-            .that().resideInAPackage("org.apache.zookeeper..")
-            .and().haveNameNotMatching(NETTY_DEPENDENT_CLASS_REGEX)
-            .should().dependOnClassesThat().resideInAPackage(NETTY_PACKAGE)
-            .because("Netty is an optional dependency; only Netty transport and SSL/TLS classes should import io.netty");
+        ArchRule rule = noClasses().should()
+                .dependOnClassesThat().resideInAnyPackage("io.netty..")
+                .orShould().dependOnClassesThat().haveSimpleNameContaining("Netty");
 
-        rule.check(classes);
+        rule.check(importedClasses);
     }
 }

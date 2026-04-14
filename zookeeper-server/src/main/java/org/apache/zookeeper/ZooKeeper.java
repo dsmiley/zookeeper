@@ -3145,14 +3145,14 @@ public class ZooKeeper implements AutoCloseable {
         if (clientCnxnSocketName == null) {
             boolean secureClient = getClientConfig().getBoolean(ZKClientConfig.SECURE_CLIENT);
             if (secureClient) {
-                clientCnxnSocketName = ClientCnxnSocketNetty.class.getName();
+                clientCnxnSocketName = "org.apache.zookeeper.ClientCnxnSocketNetty";
             } else {
                 clientCnxnSocketName = ClientCnxnSocketNIO.class.getName();
             }
         } else if (clientCnxnSocketName.equals(ClientCnxnSocketNIO.class.getSimpleName())) {
             clientCnxnSocketName = ClientCnxnSocketNIO.class.getName();
-        } else if (clientCnxnSocketName.equals(ClientCnxnSocketNetty.class.getSimpleName())) {
-            clientCnxnSocketName = ClientCnxnSocketNetty.class.getName();
+        } else if (clientCnxnSocketName.equals("ClientCnxnSocketNetty")) {
+            clientCnxnSocketName = "org.apache.zookeeper.ClientCnxnSocketNetty";
         }
 
         try {

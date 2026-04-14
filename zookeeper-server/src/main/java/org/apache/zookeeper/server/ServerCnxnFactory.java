@@ -162,6 +162,14 @@ public abstract class ServerCnxnFactory {
     public abstract void closeAll(ServerCnxn.DisconnectReason reason);
 
     /**
+     * Returns the number of connections that are currently performing a TLS handshake.
+     * Non-Netty implementations return 0.
+     */
+    public int getOutstandingHandshakeNum() {
+        return 0;
+    }
+
+    /**
      * Attempts to shed approximately the specified percentage of connections.
      *
      * @param percentage [0-100] percentage of connections to shed
