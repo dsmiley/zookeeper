@@ -3146,7 +3146,6 @@ public class ZooKeeper implements AutoCloseable {
             boolean secureClient = getClientConfig().getBoolean(ZKClientConfig.SECURE_CLIENT);
             if (secureClient) {
                 clientCnxnSocketName = ClientCnxnSocketNetty.class.getName();
-                LOG.info("Defaulting to {} for secure connections", clientCnxnSocketName);
             } else {
                 clientCnxnSocketName = ClientCnxnSocketNIO.class.getName();
             }

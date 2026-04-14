@@ -244,7 +244,6 @@ public abstract class ServerCnxnFactory {
         if (serverCnxnFactoryName == null) {
             if (secure) {
                 serverCnxnFactoryName = "org.apache.zookeeper.server.NettyServerCnxnFactory";
-                LOG.info("Defaulting to {} for secure connections", serverCnxnFactoryName);
             } else {
                 serverCnxnFactoryName = NIOServerCnxnFactory.class.getName();
             }
