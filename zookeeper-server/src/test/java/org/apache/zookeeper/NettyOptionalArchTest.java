@@ -34,9 +34,9 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
  * Architectural test to enforce that Netty is an optional dependency.
  *
  * <p>Only classes whose name contains "Netty" (e.g. {@code NettyServerCnxnFactory},
- * {@code ClientCnxnSocketNetty}) and a small set of explicitly allowed SSL/TLS utility
- * classes ({@code ClientX509Util}, {@code UnifiedServerSocket}) may depend on
- * {@code io.netty} packages. All other ZooKeeper classes must remain Netty-free so
+ * {@code ClientCnxnSocketNetty}, {@code ClientNettyX509Util}) and a small set of
+ * explicitly allowed SSL/TLS utility classes ({@code UnifiedServerSocket}) may depend
+ * on {@code io.netty} packages. All other ZooKeeper classes must remain Netty-free so
  * that Netty can be an optional dependency for users who do not need SSL/TLS.
  */
 public class NettyOptionalArchTest {
@@ -50,13 +50,11 @@ public class NettyOptionalArchTest {
                     @Override
                     public boolean test(JavaClass javaClass) {
                         // Exclude classes with "Netty" in their name (e.g. NettyServerCnxnFactory,
-                        // ClientCnxnSocketNetty, NettyServerCnxn, NettyUtils).
-                        // Also exclude ClientX509Util and UnifiedServerSocket (including their inner
-                        // and anonymous classes) which legitimately use the Netty SSL API to
-                        // build/wrap SSL contexts and handlers.
+                        // ClientCnxnSocketNetty, NettyServerCnxn, NettyUtils, ClientNettyX509Util).
+                        // Also exclude UnifiedServerSocket (and its inner classes) which legitimately
+                        // uses the Netty SSL API to detect SSL vs plain-text connections.
                         String name = javaClass.getName();
                         return !name.contains("Netty")
-                            && !name.contains("ClientX509Util")
                             && !name.contains("UnifiedServerSocket");
                     }
                 });
